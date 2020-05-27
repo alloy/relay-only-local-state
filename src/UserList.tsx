@@ -1,11 +1,24 @@
-import * as React from 'react';
-import { graphql, createFragmentContainer } from 'react-relay';
-import { createQueryRendererModern } from './relay';
-import { Flex } from 'rebass';
-import { alignItems, flexDirection, justifyContent, space } from 'styled-system';
-import styled from 'styled-components';
+import * as React from "react";
+import {
+  graphql,
+  createFragmentContainer,
+  LocalQueryRenderer,
+} from "react-relay";
+import { createQueryRendererModern } from "./relay";
+import { Flex } from "rebass";
+import {
+  alignItems,
+  flexDirection,
+  justifyContent,
+  space,
+} from "styled-system";
+import styled from "styled-components";
 
-import { UserList_query } from './__generated__/UserList_query.graphql';
+import { createOperationDescriptor, ConcreteRequest } from "relay-runtime";
+import Environment from "./relay/Environment";
+
+import { UserList_query } from "./__generated__/UserList_query.graphql";
+import { UserListQuery } from "./__generated__/UserListQuery.graphql";
 
 const Card = styled.a`
   border-radius: 2px;
@@ -24,46 +37,70 @@ const Card = styled.a`
 `;
 
 type Props = {
-  query:  UserList_query
-}
+  query: UserList_query;
+};
 class UserList extends React.Component<Props> {
   render() {
-    const { query } = this.props;
-    const { users } = query;
+    return <div>{this.props.query.badge.key}</div>;
+    // const { query } = this.props;
+    // const { users } = query;
 
-    return (
-      <Flex flexDirection='column'>
-        {users.edges.map(({node}) => (
-          <Card key={node.id}>
-            <span>User: {node.name}</span>
-            <span>Email: {node.name}</span>
-          </Card>
-        ))}
-      </Flex>
-    )
+    // return (
+    //   <Flex flexDirection="column">
+    //     {users.edges.map(({ node }) => (
+    //       <Card key={node.id}>
+    //         <span>User: {node.name}</span>
+    //         <span>Email: {node.name}</span>
+    //       </Card>
+    //     ))}
+    //   </Flex>
+    // );
   }
 }
 
 const UserListFragmentContainer = createFragmentContainer(UserList, {
   query: graphql`
     fragment UserList_query on Query {
-      users(first: 10) @connection(key: "UserList_users", filters: []) {
-        edges {
-          node {
-            id
-            name
-            email
-          }
-        }
+      badge {
+        key
       }
-    }
-  `
-});
-
-export default createQueryRendererModern(UserListFragmentContainer, UserList, {
-  query: graphql`
-    query UserListQuery {
-      ...UserList_query
     }
   `,
 });
+
+const query = graphql`
+  query UserListQuery {
+    ...UserList_query
+  }
+`;
+
+const operation = createOperationDescriptor(
+  ((query as unknown) as { default: ConcreteRequest }).default,
+  {}
+);
+Environment.commitPayload(operation, {
+  badge: {
+    key: "DRAFTING",
+  },
+});
+
+function Renderer() {
+  return (
+    <LocalQueryRenderer<UserListQuery>
+      environment={Environment}
+      query={query}
+      variables={{}}
+      render={({ props, error }) => {
+        if (props) {
+          return <UserListFragmentContainer query={props} />;
+        } else if (error) {
+          console.error(error);
+        } else {
+          return null;
+        }
+      }}
+    />
+  );
+}
+
+export default Renderer;
