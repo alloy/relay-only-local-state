@@ -14,7 +14,11 @@ import {
 } from "styled-system";
 import styled from "styled-components";
 
-import { createOperationDescriptor, ConcreteRequest } from "relay-runtime";
+import {
+  createOperationDescriptor,
+  ConcreteRequest,
+  ROOT_ID,
+} from "relay-runtime";
 import Environment from "./relay/Environment";
 
 import { UserList_query } from "./__generated__/UserList_query.graphql";
@@ -63,6 +67,9 @@ const UserListFragmentContainer = createFragmentContainer(UserList, {
     fragment UserList_query on Query {
       badge {
         key
+        icon {
+          name
+        }
       }
     }
   `,
@@ -81,10 +88,18 @@ const operation = createOperationDescriptor(
 Environment.commitPayload(operation, {
   badge: {
     key: "DRAFTING",
+    icon: {
+      name: "Drafting",
+    },
   },
 });
 
 function Renderer() {
+  setTimeout(() => {
+    const store = Environment.getStore();
+    const root = store.getSource().getRecordIDs();
+    console.log(root);
+  }, 5000);
   return (
     <LocalQueryRenderer<UserListQuery>
       environment={Environment}

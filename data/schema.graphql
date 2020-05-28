@@ -5,7 +5,7 @@ type Query {
 type Badge {
   key: BadgeKey!
   #text: String!
-  #icon: BadgeIcon!
+  icon: BadgeIcon!
 }
 
 enum BadgeKey {
@@ -15,10 +15,10 @@ enum BadgeKey {
   ARCHIVED
 }
 
-#type BadgeIcon {
-#  name: String!
-#  style: BadgeIconStyle!
-#}
+type BadgeIcon {
+  name: String!
+  #style: BadgeIconStyle!
+}
 
 #type BadgeIconStyle {
 #  color: String!
