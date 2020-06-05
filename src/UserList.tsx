@@ -18,6 +18,7 @@ import {
   createOperationDescriptor,
   ConcreteRequest,
   ROOT_ID,
+  commitLocalUpdate,
 } from "relay-runtime";
 import Environment from "./relay/Environment";
 
@@ -96,9 +97,10 @@ Environment.commitPayload(operation, {
 
 function Renderer() {
   setTimeout(() => {
-    const store = Environment.getStore();
-    const root = store.getSource().getRecordIDs();
-    console.log(root);
+    commitLocalUpdate(Environment, (store) => {
+      const root = store.getRoot();
+      root.getLinkedRecord("badge")!.setValue("key", "REVIEWING");
+    });
   }, 5000);
   return (
     <LocalQueryRenderer<UserListQuery>
